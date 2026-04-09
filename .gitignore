@@ -22,7 +22,7 @@ build/
 *~
 
 # Data
--data/input/*
+.data/input/*
 .data/output/*
 
 # OS

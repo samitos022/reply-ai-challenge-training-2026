@@ -3,9 +3,6 @@ import json
 import os
 import numpy as np
 
-# ==========================================
-# LIVELLO 1: LOGICA E MATEMATICA CORE
-# ==========================================
 
 def load_json(filepath):
     """Utility per caricare JSON in modo sicuro."""
@@ -33,9 +30,9 @@ def get_trend_label(series):
     delta_pct = ((recent - baseline) / baseline) * 100
     
     if delta_pct <= -25: return baseline, recent, "SEVERE DROP"
-    if delta_pct <= -10: return baseline, recent, "Moderate Drop"
+    if delta_pct <= -15: return baseline, recent, "Moderate Drop"
     if delta_pct >= 25:  return baseline, recent, "SEVERE SPIKE"
-    if delta_pct >= 10:  return baseline, recent, "Moderate Spike"
+    if delta_pct >= 15:  return baseline, recent, "Moderate Spike"
     
     return baseline, recent, "STABLE"
 
@@ -57,10 +54,6 @@ def check_escalation(events):
         return "CRITICAL (Specialist loop detected)"
     return "Normal Routine"
 
-
-# ==========================================
-# LIVELLO 2: ESTRAZIONE DATI PANDAS -> DICT
-# ==========================================
 
 def extract_status_features(status_df, citizen_id):
     """Filtra i dati di salute e restituisce un dizionario strutturato."""
@@ -94,11 +87,12 @@ def extract_location_features(locations_df, citizen_id, home_city):
     cities_visited = df['city'].unique().tolist()
     travels = [c for c in cities_visited if c != home_city]
     
-    # Rilevamento di isolamento recente (si muoveva e ora si è fermato?)
+    # Rilevamento di isolamento recente (si muoveva e ora si è fermato?) 
+    # TODO da togliere questa logica un po' forzata, è solo un esempio di feature che potremmo inventare per l'LLM
     isolation = "No"
     if len(df) > 10:
         first_half_cities = df.iloc[:len(df)//2]['city'].nunique()
-        last_5_records_cities = df.tail(5)['city'].nunique()
+        last_5_records_cities = df.tail(5)['city'].nunique() 
         if first_half_cities > 1 and last_5_records_cities == 1:
             isolation = "YES (Sudden confinement)"
 
@@ -108,10 +102,6 @@ def extract_location_features(locations_df, citizen_id, home_city):
         "isolation_detected": isolation
     }
 
-
-# ==========================================
-# LIVELLO 3: FORMATTAZIONE PER L'LLM
-# ==========================================
 
 def format_citizen_record(c_id, profile, status, loc):
     """
@@ -131,19 +121,13 @@ HEALTH_TRENDS:
   Stress_Exposure: {status.get('environmental_stress', 'N/A')}
 MOBILITY_TRENDS:
   Unique_Cities: {loc.get('unique_cities', 'N/A')}
-  Isolation_Detected: {loc.get('isolation_detected', 'N/A')}
   Travels: {loc.get('travels', 'None')}
 """
-
-
-# ==========================================
-# ENTRY POINT PRINCIPALE
-# ==========================================
 
 def load_and_preprocess_data():
     """Legge i CSV e orchestra l'estrazione per tutti i cittadini."""
     print("[*] Caricamento Dati e Feature Engineering...")
-    base_dir = "data/inputs/public_lev_1"
+    base_dir = "data/inputs/public_lev_3"
     
     users = load_json(os.path.join(base_dir, "users.json"))
     status_df = pd.read_csv(os.path.join(base_dir, "status.csv"))
@@ -187,7 +171,7 @@ if __name__ == "__main__":
     print(f"\nGenerati riassunti per {len(dati_pronti)} cittadini.\n")
     
     # Stampiamo il primo cittadino come esempio
-    primo_id = list(dati_pronti.keys())[0] # Stampiamo il cittadino WNACROYX (che sappiamo avere problemi)
+    primo_id = list(dati_pronti.keys())[1]
     print("ESEMPIO DI PAYLOAD PER LLM:")
     print("-" * 40)
     print(dati_pronti[primo_id])
