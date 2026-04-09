@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 # Carica le variabili d'ambiente
 load_dotenv()
 
-# Inizializza il client Langfuse una volta sola per tutto il progetto
 langfuse_client = Langfuse(
     public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
     secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
