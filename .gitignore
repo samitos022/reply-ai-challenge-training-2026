@@ -22,8 +22,8 @@ build/
 *~
 
 # Data
-data/input/*
-data/output/*
+-data/input/*
+.data/output/*
 
 # OS
 .DS_Store
